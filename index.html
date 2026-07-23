@@ -13,9 +13,73 @@
 
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
+<!-- PALLA -->
+<div class="ball" style="left:420px; top:250px;"></div>
 
 
 <style>
+
+.ball {
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #ffb347, #ff8c00 60%, #d46a00);
+  box-shadow: inset -4px -4px 8px rgba(0,0,0,0.4),
+              inset 4px 4px 8px rgba(255,255,255,0.3),
+              0 0 10px rgba(0,0,0,0.6);
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+/* Linee nere realistiche */
+.ball::before,
+.ball::after {
+  content: "";
+  position: absolute;
+  background: #000;
+  opacity: 0.9;
+}
+
+/* Linea verticale */
+.ball::before {
+  width: 3px;
+  height: 100%;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+  border-radius: 3px;
+}
+
+/* Linea orizzontale */
+.ball::after {
+  height: 3px;
+  width: 100%;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  border-radius: 3px;
+}
+
+/* Due linee curve */
+.ball::after,
+.ball::before {
+  pointer-events: none;
+}
+
+.ball::before {
+  box-shadow:
+    -18px 0 0 0 #000,
+    18px 0 0 0 #000;
+}
+
+.ball::after {
+  box-shadow:
+    0 -18px 0 0 #000,
+    0 18px 0 0 #000;
+}
+
 
 .defender {
   position: absolute;
@@ -38,6 +102,8 @@
   }
 
   #board {
+    <div class="ball" style="left:420px; top:250px;"></div>
+
     position: relative;
     width: 900px;      /* puoi cambiare */
     height: 500px;     /* puoi cambiare */
@@ -97,6 +163,58 @@
   const board = document.getElementById("board");
   const players = document.querySelectorAll(".player");
 const defenders = document.querySelectorAll(".defender");
+const ball = document.querySelector(".ball");
+
+/* MOVIMENTO PALLA */
+(function(p){
+  let dragging = false;
+  let offsetX = 0;
+  let offsetY = 0;
+
+  function startDrag(x, y) {
+    dragging = true;
+    const rect = p.getBoundingClientRect();
+    offsetX = x - rect.left;
+    offsetY = y - rect.top;
+  }
+
+  function doDrag(x, y) {
+    if (!dragging) return;
+
+    const boardRect = board.getBoundingClientRect();
+    let newX = x - boardRect.left - offsetX;
+    let newY = y - boardRect.top - offsetY;
+
+    newX = Math.max(0, Math.min(boardRect.width - p.offsetWidth, newX));
+    newY = Math.max(0, Math.min(boardRect.height - p.offsetHeight, newY));
+
+    p.style.left = newX + "px";
+    p.style.top = newY + "px";
+  }
+
+  function endDrag() {
+    dragging = false;
+  }
+
+  /* mouse */
+  p.addEventListener("mousedown", e => startDrag(e.clientX, e.clientY));
+  document.addEventListener("mousemove", e => doDrag(e.clientX, e.clientY));
+  document.addEventListener("mouseup", endDrag);
+
+  /* touch */
+  p.addEventListener("touchstart", e => {
+    const t = e.touches[0];
+    startDrag(t.clientX, t.clientY);
+  }, { passive: false });
+
+  document.addEventListener("touchmove", e => {
+    const t = e.touches[0];
+    doDrag(t.clientX, t.clientY);
+  }, { passive: false });
+
+  document.addEventListener("touchend", endDrag);
+})(ball);
+
 
 defenders.forEach(p => {
   let dragging = false;
