@@ -4,6 +4,17 @@
 <meta charset="UTF-8">
 <title>Lavagna FIBA</title>
 
+<link rel="manifest" href="manifest.json">
+<script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("service-worker.js");
+  }
+</script>
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+
 <style>
 
 .defender {
@@ -30,7 +41,7 @@
     position: relative;
     width: 900px;      /* puoi cambiare */
     height: 500px;     /* puoi cambiare */
-    background-image: url("BOYS 90 BK.png"); /* QUI metti la tua immagine */
+    background-image: url("BOYS_90_BK.png"); /* QUI metti la tua immagine */
     background-size: cover;
     background-position: center;
     border: 4px solid #fff;
@@ -57,10 +68,13 @@
   .player:active {
     cursor: grabbing;
   }
+
+
 </style>
 </head>
 
 <body>
+<img src="BOYS_90_BK.png" style="width:200px; border:2px solid red;">
 <div id="board">
 
 <!-- DIFENSORI (sempre 5, non numerati) -->
