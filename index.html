@@ -33,6 +33,13 @@
   touch-action: none;
 }
 
+/* IMPORTANTISSIMO: elimina qualsiasi pseudo-elemento */
+.ball::before,
+.ball::after {
+  content: none !important;
+  display: none !important;
+}
+
 
 .defender {
   position: absolute;
