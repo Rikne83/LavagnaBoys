@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>LavagnaBoys</title>
+
+<link rel="manifest" href="manifest.json">
+<script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("service-worker.js");
+  }
+</script>
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+
+<style>
+
+.defender {
+  position: absolute;
+  color: #000;
+  font-weight: bold;
+  font-size: 32px;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  transform-origin: center center; /* per ruotare bene */
+}
+
+  body {
+    margin: 0;
+    background: #222;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+
+  #board {
+    position: relative;
+    width: 900px;      /* puoi cambiare */
+    height: 500px;     /* puoi cambiare */
+    background-image: url("BOYS_90_BK.png"); /* QUI metti la tua immagine */
+    background-size: cover;
+    background-position: center;
+    border: 4px solid #fff;
+    touch-action: none;
+  }
+
+  .player {
+    position: absolute;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: #ffffff;
+    color: #000;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: grab;
+    box-shadow: 0 0 10px rgba(0,0,0,0.7);
+    user-select: none;
+    touch-action: none;
+  }
+
+  .player:active {
+    cursor: grabbing;
+  }
+
+
+</style>
+</head>
+
+<body>
+<img src="BOYS_90_BK.png" style="width:200px; border:2px solid red;">
+<div id="board">
+
+<!-- DIFENSORI (sempre 5, non numerati) -->
+<div class="defender" style="left:300px; top:200px;">(•</div>
+<div class="defender" style="left:600px; top:200px;">(•</div>
+<div class="defender" style="left:300px; top:300px;">(•</div>
+<div class="defender" style="left:600px; top:300px;">(•</div>
+<div class="defender" style="left:450px; top:350px;">(•</div>
+
+
+  <!-- GIOCATORI -->
+  <div class="player" style="left:430px; top:230px;">1</div>
+  <div class="player" style="left:380px; top:180px;">2</div>
+  <div class="player" style="left:480px; top:180px;">3</div>
+  <div class="player" style="left:360px; top:280px;">4</div>
+  <div class="player" style="left:500px; top:280px;">5</div>
+
+</div>
+
+<script>
+  const board = document.getElementById("board");
+  const players = document.querySelectorAll(".player");
+const defenders = document.querySelectorAll(".defender");
+
+defenders.forEach(p => {
+  let dragging = false;
+  let offsetX = 0;
+  let offsetY = 0;
+
+  function startDrag(x, y) {
+    dragging = true;
+    const rect = p.getBoundingClientRect();
+    offsetX = x - rect.left;
+    offsetY = y - rect.top;
+  }
+/* ROTAZIONE DIFENSORI */
+defenders.forEach(d => {
+  let currentRotation = 0;
+
+  /* Rotazione con rotella del mouse */
+  d.addEventListener("wheel", e => {
+    e.preventDefault();
+    currentRotation += e.deltaY > 0 ? 10 : -10;
+    d.style.transform = `rotate(${currentRotation}deg)`;
+  });
+
+  /* Rotazione con due dita (pinch rotate) */
+  let lastAngle = null;
+
+  d.addEventListener("touchmove", e => {
+    if (e.touches.length === 2) {
+      e.preventDefault();
+
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+
+      const angle = Math.atan2(
+        t2.clientY - t1.clientY,
+        t2.clientX - t1.clientX
+      ) * 180 / Math.PI;
+
+      if (lastAngle !== null) {
+        const delta = angle - lastAngle;
+        currentRotation += delta;
+        d.style.transform = `rotate(${currentRotation}deg)`;
+      }
+
+      lastAngle = angle;
+    }
+  }, { passive: false });
+
+  d.addEventListener("touchend", () => {
+    lastAngle = null;
+  });
+});
+
+
+  function doDrag(x, y) {
+    if (!dragging) return;
+
+    const boardRect = board.getBoundingClientRect();
+    let newX = x - boardRect.left - offsetX;
+    let newY = y - boardRect.top - offsetY;
+
+    newX = Math.max(0, Math.min(boardRect.width - p.offsetWidth, newX));
+    newY = Math.max(0, Math.min(boardRect.height - p.offsetHeight, newY));
+
+    p.style.left = newX + "px";
+    p.style.top = newY + "px";
+  }
+
+  function endDrag() {
+    dragging = false;
+  }
+
+  /* mouse */
+  p.addEventListener("mousedown", e => startDrag(e.clientX, e.clientY));
+  document.addEventListener("mousemove", e => doDrag(e.clientX, e.clientY));
+  document.addEventListener("mouseup", endDrag);
+
+  /* touch */
+  p.addEventListener("touchstart", e => {
+    const t = e.touches[0];
+    startDrag(t.clientX, t.clientY);
+  }, { passive: false });
+
+  document.addEventListener("touchmove", e => {
+    const t = e.touches[0];
+    doDrag(t.clientX, t.clientY);
+  }, { passive: false });
+
+  document.addEventListener("touchend", endDrag);
+});
+
+
+  players.forEach(p => {
+    let dragging = false;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    function startDrag(x, y) {
+      dragging = true;
+      const rect = p.getBoundingClientRect();
+      offsetX = x - rect.left;
+      offsetY = y - rect.top;
+    }
+
+    function doDrag(x, y) {
+      if (!dragging) return;
+
+      const boardRect = board.getBoundingClientRect();
+      let newX = x - boardRect.left - offsetX;
+      let newY = y - boardRect.top - offsetY;
+
+      newX = Math.max(0, Math.min(boardRect.width - p.offsetWidth, newX));
+      newY = Math.max(0, Math.min(boardRect.height - p.offsetHeight, newY));
+
+      p.style.left = newX + "px";
+      p.style.top = newY + "px";
+    }
+
+    function endDrag() {
+      dragging = false;
+    }
+
+    /* mouse */
+    p.addEventListener("mousedown", e => startDrag(e.clientX, e.clientY));
+    document.addEventListener("mousemove", e => doDrag(e.clientX, e.clientY));
+    document.addEventListener("mouseup", endDrag);
+
+    /* touch */
+    p.addEventListener("touchstart", e => {
+      const t = e.touches[0];
+      startDrag(t.clientX, t.clientY);
+    }, { passive: false });
+
+    document.addEventListener("touchmove", e => {
+      const t = e.touches[0];
+      doDrag(t.clientX, t.clientY);
+    }, { passive: false });
+
+    document.addEventListener("touchend", endDrag);
+  });
+</script>
+
+</body>
+</html>
