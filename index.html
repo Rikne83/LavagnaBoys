@@ -57,11 +57,21 @@ body {
 
 
 /* --- DIFENSORI (più grandi) --- */
-.defedocument.querySelectorAll(".defender").forEach(def => {
+ .defender {
+  position: absolute;
+  color: #000;
+  font-weight: bold;
+  font-size: 55px;     /* +30% rispetto a 42px */
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  transform-origin: center center;
+}
+
+  .document.querySelectorAll(".defender").forEach(def => {
   let rotating = false;
   let startAngle = 0;
   let initialRotation = 0;
-
   function getAngle(x, y, rect) {
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
@@ -191,7 +201,7 @@ body {
 
   
   <!-- DIFENSORI (•) -->
-<div class="defender" style="left:800px; top:40px;">(•</div>
+<div class="defender" style="left:500px; top:200px;">(•</div>
 <div class="defender" style="left:600px; top:300px;">(•</div>
 <div class="defender" style="left:550px; top:400px;">(•</div>
 <div class="defender" style="left:650px; top:250px;">(•</div>
