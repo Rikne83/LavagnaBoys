@@ -112,13 +112,22 @@ body {
 
 <div id="board">
 
-  <!-- ATTACCANTI -->
-  <div class="player" style="left:100px; top:200px;">●</div>
-  <div class="player" style="left:200px; top:300px;">●</div>
 
-  <!-- DIFENSORI -->
-  <div class="defender" style="left:400px; top:200px;">(•</div>
-  <div class="defender" style="left:500px; top:300px;">(•</div>
+  <!-- ATTACCANTI (1–5) -->
+<div class="player" style="left:100px; top:200px;">1</div>
+<div class="player" style="left:200px; top:300px;">2</div>
+<div class="player" style="left:300px; top:250px;">3</div>
+<div class="player" style="left:150px; top:400px;">4</div>
+<div class="player" style="left:250px; top:450px;">5</div>
+
+
+  
+  <!-- DIFENSORI (•) -->
+<div class="defender" style="left:500px; top:200px;">(•</div>
+<div class="defender" style="left:600px; top:300px;">(•</div>
+<div class="defender" style="left:550px; top:400px;">(•</div>
+<div class="defender" style="left:650px; top:250px;">(•</div>
+<div class="defender" style="left:700px; top:350px;">(•</div>
 
   <!-- PALLA -->
   <div class="ball" style="left:420px; top:250px;"></div>
@@ -233,6 +242,7 @@ pencilBtn.addEventListener("click", () => {
 
   drawLayer.style.pointerEvents = pencilActive ? "auto" : "none";
 
+  ctx.globalCompositeOperation = "source-over";  // MATITA NORMALE
   ctx.strokeStyle = "#ff8c00";
   ctx.lineWidth = 4;
 });
@@ -247,8 +257,8 @@ eraserBtn.addEventListener("click", () => {
 
   drawLayer.style.pointerEvents = eraserActive ? "auto" : "none";
 
-  ctx.strokeStyle = "#ffffff";
-  ctx.lineWidth = 20;
+  ctx.globalCompositeOperation = "destination-out";  // CANCELLA
+  ctx.lineWidth = 30;  // spessore gomma
 });
 
 /* DISEGNO */
