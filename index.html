@@ -27,13 +27,22 @@ body {
 /* --- ATTACCANTI --- */
 .player {
   position: absolute;
-  color: #fff;
-  font-size: 42px;
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  background: #ffffff;        /* cerchio bianco */
+  color: #000000;             /* numero nero */
+  font-size: 32px;
   font-weight: bold;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   cursor: grab;
   user-select: none;
   touch-action: none;
+  box-shadow: 0 0 10px rgba(0,0,0,0.6); /* visibilità sul campo */
 }
+
 
 /* --- DIFENSORI (più grandi) --- */
 .defender {
