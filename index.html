@@ -18,6 +18,28 @@
 
 
 <style>
+#tools {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+}
+
+#pencilBtn {
+  padding: 10px 18px;
+  font-size: 18px;
+  font-weight: bold;
+  background: #222;
+  color: #fff;
+  border: 2px solid #fff;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+#pencilBtn.active {
+  background: #ff8c00;
+  border-color: #000;
+}
+
 
 .ball {
   position: absolute;
@@ -60,9 +82,13 @@
     align-items: center;
     height: 100vh;
   }
+<div class="ball" style="left:420px; top:250px;"></div>
+<div id="tools">
+  <button id="pencilBtn">✏️ Matita</button>
+</div>
 
   #board {
-    <div class="ball" style="left:420px; top:250px;"></div>
+   
 
     position: relative;
     width: 900px;      /* puoi cambiare */
