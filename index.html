@@ -1,250 +1,342 @@
 <!DOCTYPE html>
-<html lang="it">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Boys90 - Lavagna</title>
+<title>LavagnaBoys</title>
+
+<!-- PWA base -->
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="apple-touch-icon" href="icon.png">
+
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("service-worker.js");
+}
+</script>
 
 <style>
-  body {
-    margin: 0;
-    overflow: hidden;
-    background: #111;
-    touch-action: none;
-  }
+body {
+  margin: 0;
+  background: #000;
+  overflow: hidden;
+  font-family: Arial;
+  position: relative;
+}
 
-  #court {
-    position: absolute;
-    width: 100vw;
-    height: 100vh;
-    background-image: url('BOYS_90_BK.png');
-    background-size: cover;
-    background-position: center;
-  }
+/* BOARD */
+#board {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  background-image: url("BOYS_90_BK.png");
+  background-size: cover;
+  background-position: center;
+  touch-action: none;
+  z-index: 1;
+}
 
-  .player, .defender, .ball {
-    position: absolute;
-    font-size: 32px;
-    font-weight: bold;
-    color: white;
-    user-select: none;
-    touch-action: none;
-  }
+/* ATTACCANTI: cerchi bianchi con numero nero */
+.player {
+  position: absolute;
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #000000;
+  font-size: 32px;
+  font-weight: bold;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  box-shadow: 0 0 10px rgba(0,0,0,0.6);
+}
 
-  /* Attaccanti */
-  .player {
-    color: #00ffea;
-  }
+/* DIFENSORI: neri, più grandi */
+.defender {
+  position: absolute;
+  color: #000000;      /* nero */
+  font-weight: bold;
+  font-size: 55px;     /* più grandi */
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  transform-origin: center center;
+}
 
-  /* Difensori */
-  .defender {
-    color: #ff4040;
-  }
+/* PALLA 3D */
+.ball {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #ffb347, #ff8c00 60%, #d46a00);
+  box-shadow: inset -3px -3px 6px rgba(0,0,0,0.35),
+              inset 3px 3px 6px rgba(255,255,255,0.25),
+              0 0 8px rgba(0,0,0,0.5);
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  z-index: 10;
+}
 
-  /* Barra rotazione */
-  .rotate-bar {
-    position: absolute;
-    left: -10px;
-    width: 6px;
-    height: 60px;
-    background: rgba(255,255,255,0.15);
-    border-radius: 3px;
-    touch-action: none;
-  }
+/* CANVAS DISEGNO */
+#drawLayer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 5;
+}
 
-  /* Palla */
-  .ball {
-    font-size: 28px;
-    color: #ffae00;
-  }
+/* STRUMENTI */
+#tools {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  gap: 10px;
+  z-index: 20;
+}
 
-  /* Matita e gomma */
-  #pencil, #eraser {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    font-size: 26px;
-    padding: 10px 14px;
-    background: #222;
-    color: white;
-    border-radius: 8px;
-    margin-right: 10px;
-    user-select: none;
-  }
+#tools button {
+  padding: 10px 18px;
+  font-size: 18px;
+  font-weight: bold;
+  background: #222;
+  color: #fff;
+  border: 2px solid #fff;
+  border-radius: 8px;
+  cursor: pointer;
+  z-index: 21;
+}
 
-  #eraser {
-    left: 120px;
-  }
+#tools button.active {
+  background: #ff8c00;
+  border-color: #000;
+}
 
-  canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-  }
+#eraserBtn.active {
+  background: #ff0000;
+}
 </style>
 </head>
 
 <body>
 
-<div id="court"></div>
+<div id="board">
 
-<!-- Matita e gomma -->
-<div id="pencil">✏️</div>
-<div id="eraser">🧽</div>
+  <!-- ATTACCANTI (1–5) -->
+  <div class="player" style="left:100px; top:200px;">1</div>
+  <div class="player" style="left:200px; top:300px;">2</div>
+  <div class="player" style="left:300px; top:250px;">3</div>
+  <div class="player" style="left:150px; top:400px;">4</div>
+  <div class="player" style="left:250px; top:450px;">5</div>
 
-<canvas id="drawCanvas"></canvas>
+  <!-- DIFENSORI (•) neri -->
+  <div class="defender" style="left:500px; top:200px;">(•</div>
+  <div class="defender" style="left:600px; top:300px;">(•</div>
+  <div class="defender" style="left:550px; top:400px;">(•</div>
+  <div class="defender" style="left:650px; top:250px;">(•</div>
+  <div class="defender" style="left:700px; top:350px;">(•</div>
 
-<!-- Attaccanti -->
-<div class="player" id="p1">1</div>
-<div class="player" id="p2">2</div>
-<div class="player" id="p3">3</div>
-<div class="player" id="p4">4</div>
-<div class="player" id="p5">5</div>
+  <!-- PALLA -->
+  <div class="ball" style="left:420px; top:250px;"></div>
 
-<!-- Difensori -->
-<div class="defender" id="d1">
-  <div class="rotate-bar"></div>
-  (•
-</div>
-<div class="defender" id="d2">
-  <div class="rotate-bar"></div>
-  (•
-</div>
-<div class="defender" id="d3">
-  <div class="rotate-bar"></div>
-  (•
-</div>
-<div class="defender" id="d4">
-  <div class="rotate-bar"></div>
-  (•
-</div>
-<div class="defender" id="d5">
-  <div class="rotate-bar"></div>
-  (•
+  <!-- CANVAS DISEGNO -->
+  <canvas id="drawLayer"></canvas>
 </div>
 
-<!-- Palla -->
-<div class="ball" id="ball">🏀</div>
+<!-- STRUMENTI -->
+<div id="tools">
+  <button id="pencilBtn">Matita</button>
+  <button id="eraserBtn">Gomma</button>
+</div>
 
 <script>
-/* ---------------------- POSIZIONI INIZIALI ---------------------- */
-function placeInitial(id, x, y) {
-  const el = document.getElementById(id);
-  el.style.transform = `translate(${x}px, ${y}px)`;
+const board = document.getElementById("board");
+const drawLayer = document.getElementById("drawLayer");
+const ctx = drawLayer.getContext("2d");
+
+function resizeCanvas() {
+  drawLayer.width = board.offsetWidth;
+  drawLayer.height = board.offsetHeight;
 }
+resizeCanvas();
 
-placeInitial("p1", 100, 200);
-placeInitial("p2", 200, 300);
-placeInitial("p3", 300, 400);
-placeInitial("p4", 400, 300);
-placeInitial("p5", 500, 200);
+/* DRAG GENERICO */
+function enableDrag(el) {
+  let dragging = false;
+  let offsetX = 0, offsetY = 0;
 
-placeInitial("d1", 150, 250);
-placeInitial("d2", 250, 350);
-placeInitial("d3", 350, 450);
-placeInitial("d4", 450, 350);
-placeInitial("d5", 550, 250);
-
-placeInitial("ball", 320, 320);
-
-/* ---------------------- DRAG GENERALE ---------------------- */
-let dragging = null;
-let startX, startY, objX, objY;
-
-function pointerDown(e) {
-  const el = e.currentTarget;
-  if (el.classList.contains("rotate-bar")) return; // rotazione gestita sotto
-  dragging = el;
-  const rect = el.getBoundingClientRect();
-  startX = e.clientX;
-  startY = e.clientY;
-  objX = rect.left;
-  objY = rect.top;
-}
-
-function pointerMove(e) {
-  if (!dragging) return;
-  const dx = e.clientX - startX;
-  const dy = e.clientY - startY;
-  dragging.style.transform = `translate(${objX + dx}px, ${objY + dy}px)`;
-}
-
-function pointerUp() {
-  dragging = null;
-}
-
-document.querySelectorAll(".player, .defender, .ball").forEach(el => {
-  el.addEventListener("pointerdown", pointerDown);
-});
-
-window.addEventListener("pointermove", pointerMove);
-window.addEventListener("pointerup", pointerUp);
-
-/* ---------------------- ROTAZIONE DIFENSORI ---------------------- */
-let rotating = null;
-let rotStartY, rotStartAngle;
-
-document.querySelectorAll(".rotate-bar").forEach(bar => {
-  bar.addEventListener("pointerdown", e => {
-    e.stopPropagation();
-    const defender = bar.parentElement;
-    rotating = defender;
-    rotStartY = e.clientY;
-    rotStartAngle = parseFloat(defender.dataset.angle || "0");
+  el.addEventListener("mousedown", e => {
+    dragging = true;
+    const r = el.getBoundingClientRect();
+    offsetX = e.clientX - r.left;
+    offsetY = e.clientY - r.top;
   });
+
+  document.addEventListener("mousemove", e => {
+    if (!dragging) return;
+    const boardRect = board.getBoundingClientRect();
+    let x = e.clientX - boardRect.left - offsetX;
+    let y = e.clientY - boardRect.top - offsetY;
+    el.style.left = x + "px";
+    el.style.top = y + "px";
+  });
+
+  document.addEventListener("mouseup", () => dragging = false);
+
+  el.addEventListener("touchstart", e => {
+    dragging = true;
+    const t = e.touches[0];
+    const r = el.getBoundingClientRect();
+    offsetX = t.clientX - r.left;
+    offsetY = t.clientY - r.top;
+  }, { passive: false });
+
+  document.addEventListener("touchmove", e => {
+    if (!dragging) return;
+    const t = e.touches[0];
+    const boardRect = board.getBoundingClientRect();
+    let x = t.clientX - boardRect.left - offsetX;
+    let y = t.clientY - boardRect.top - offsetY;
+    el.style.left = x + "px";
+    el.style.top = y + "px";
+  }, { passive: false });
+
+  document.addEventListener("touchend", () => dragging = false);
+}
+
+document.querySelectorAll(".player").forEach(enableDrag);
+document.querySelectorAll(".defender").forEach(enableDrag);
+enableDrag(document.querySelector(".ball"));
+
+/* ROTAZIONE DIFENSORI CON UN DITO */
+document.querySelectorAll(".defender").forEach(def => {
+  let rotating = false;
+  let startAngle = 0;
+  let initialRotation = 0;
+
+  function getAngle(x, y, rect) {
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    return Math.atan2(y - cy, x - cx) * 180 / Math.PI;
+  }
+
+  def.addEventListener("touchstart", e => {
+    rotating = true;
+    const t = e.touches[0];
+    const rect = def.getBoundingClientRect();
+    startAngle = getAngle(t.clientX, t.clientY, rect);
+    initialRotation = parseFloat(def.getAttribute("data-angle") || "0");
+  }, { passive: false });
+
+  def.addEventListener("touchmove", e => {
+    if (!rotating) return;
+    const t = e.touches[0];
+    const rect = def.getBoundingClientRect();
+    const currentAngle = getAngle(t.clientX, t.clientY, rect);
+    const delta = currentAngle - startAngle;
+    const newAngle = initialRotation + delta;
+    def.style.transform = `rotate(${newAngle}deg)`;
+    def.setAttribute("data-angle", newAngle);
+  }, { passive: false });
+
+  def.addEventListener("touchend", () => rotating = false);
+
+  def.addEventListener("mousedown", e => {
+    rotating = true;
+    const rect = def.getBoundingClientRect();
+    startAngle = getAngle(e.clientX, e.clientY, rect);
+    initialRotation = parseFloat(def.getAttribute("data-angle") || "0");
+  });
+
+  document.addEventListener("mousemove", e => {
+    if (!rotating) return;
+    const rect = def.getBoundingClientRect();
+    const currentAngle = getAngle(e.clientX, e.clientY, rect);
+    const delta = currentAngle - startAngle;
+    const newAngle = initialRotation + delta;
+    def.style.transform = `rotate(${newAngle}deg)`;
+    def.setAttribute("data-angle", newAngle);
+  });
+
+  document.addEventListener("mouseup", () => rotating = false);
 });
 
-window.addEventListener("pointermove", e => {
-  if (!rotating) return;
-  const dy = e.clientY - rotStartY;
-  const angle = rotStartAngle + dy * 0.7;
-  rotating.dataset.angle = angle;
-  rotating.style.transform = `rotate(${angle}deg)` + rotating.style.transform.replace(/.*translate/, " translate");
-});
-
-window.addEventListener("pointerup", () => rotating = null);
-
-/* ---------------------- MATITA E GOMMA ---------------------- */
-const canvas = document.getElementById("drawCanvas");
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-const ctx = canvas.getContext("2d");
-
+/* MATITA + GOMMA */
 let drawing = false;
-let erasing = false;
+let pencilActive = false;
+let eraserActive = false;
 
-document.getElementById("pencil").addEventListener("pointerdown", () => {
-  drawing = true;
-  erasing = false;
+const pencilBtn = document.getElementById("pencilBtn");
+const eraserBtn = document.getElementById("eraserBtn");
+
+pencilBtn.addEventListener("click", () => {
+  pencilActive = !pencilActive;
+  eraserActive = false;
+
+  pencilBtn.classList.toggle("active", pencilActive);
+  eraserBtn.classList.remove("active");
+
+  drawLayer.style.pointerEvents = pencilActive ? "auto" : "none";
+
+  ctx.globalCompositeOperation = "source-over";
+  ctx.strokeStyle = "#ff8c00";
+  ctx.lineWidth = 4;
 });
 
-document.getElementById("eraser").addEventListener("pointerdown", () => {
-  erasing = true;
-  drawing = false;
+eraserBtn.addEventListener("click", () => {
+  eraserActive = !eraserActive;
+  pencilActive = false;
+
+  eraserBtn.classList.toggle("active", eraserActive);
+  pencilBtn.classList.remove("active");
+
+  drawLayer.style.pointerEvents = eraserActive ? "auto" : "none";
+
+  ctx.globalCompositeOperation = "destination-out";
+  ctx.lineWidth = 30;
 });
 
-canvas.addEventListener("pointerdown", e => {
-  if (!drawing && !erasing) return;
+drawLayer.addEventListener("mousedown", e => {
+  if (!pencilActive && !eraserActive) return;
   drawing = true;
   ctx.beginPath();
-  ctx.moveTo(e.clientX, e.clientY);
+  ctx.moveTo(e.offsetX, e.offsetY);
 });
 
-canvas.addEventListener("pointermove", e => {
+drawLayer.addEventListener("mousemove", e => {
   if (!drawing) return;
-  if (erasing) {
-    ctx.clearRect(e.clientX - 10, e.clientY - 10, 20, 20);
-  } else {
-    ctx.lineWidth = 4;
-    ctx.strokeStyle = "#ffffff";
-    ctx.lineTo(e.clientX, e.clientY);
-    ctx.stroke();
-  }
+  ctx.lineTo(e.offsetX, e.offsetY);
+  ctx.stroke();
 });
 
-canvas.addEventListener("pointerup", () => {
-  drawing = false;
-});
+drawLayer.addEventListener("mouseup", () => drawing = false);
+
+drawLayer.addEventListener("touchstart", e => {
+  if (!pencilActive && !eraserActive) return;
+  drawing = true;
+  const t = e.touches[0];
+  const r = drawLayer.getBoundingClientRect();
+  ctx.beginPath();
+  ctx.moveTo(t.clientX - r.left, t.clientY - r.top);
+}, { passive: false });
+
+drawLayer.addEventListener("touchmove", e => {
+  if (!drawing) return;
+  const t = e.touches[0];
+  const r = drawLayer.getBoundingClientRect();
+  ctx.lineTo(t.clientX - r.left, t.clientY - r.top);
+  ctx.stroke();
+}, { passive: false });
+
+drawLayer.addEventListener("touchend", () => drawing = false);
 </script>
 
 </body>
