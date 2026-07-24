@@ -4,6 +4,18 @@
 <meta charset="UTF-8">
 <title>Lavagna Basket</title>
 
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="apple-touch-icon" href="icon.png">
+
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("service-worker.js");
+}
+</script>
+
 <style>
 
 body {
@@ -49,7 +61,7 @@ body {
   position: absolute;
   color: #000;
   font-weight: bold;
-  font-size: 55px; /* +30% rispetto a 42px */
+  font-size: 55px;
   cursor: grab;
   user-select: none;
   touch-action: none;
@@ -69,7 +81,7 @@ body {
   cursor: grab;
   user-select: none;
   touch-action: none;
-  z-index: 10; /* palla sopra tutto */
+  z-index: 10;
 }
 
 /* --- CANVAS DISEGNO --- */
@@ -78,7 +90,7 @@ body {
   top: 0;
   left: 0;
   pointer-events: none;
-  z-index: 5; /* sotto la palla */
+  z-index: 5;
 }
 
 /* --- STRUMENTI --- */
@@ -185,7 +197,7 @@ function enableDrag(el) {
   document.addEventListener("touchmove", e => {
     if (!dragging) return;
     const t = e.touches[0];
-    const boardRect = board.getBoundingClientRect();
+    const boardRect = board.getBoundingBoundingClientRect();
     let x = t.clientX - boardRect.left - offsetX;
     let y = t.clientY - boardRect.top - offsetY;
     el.style.left = x + "px";
