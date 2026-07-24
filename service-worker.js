@@ -5,7 +5,7 @@ self.addEventListener("install", e => {
         "index.html",
         "manifest.json",
         "service-worker.js",
-             "BOYS 90 BK.png",
+             "BOYS_90_BK.png",
         "icon.png"
       ]);
     })
