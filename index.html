@@ -1,49 +1,56 @@
 <!DOCTYPE html>
-<html lang="it">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>LavagnaBoys</title>
-
-<link rel="manifest" href="manifest.json">
-<script>
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("service-worker.js");
-  }
-</script>
-
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
-<!-- PALLA -->
-<div class="ball" style="left:420px; top:250px;"></div>
-
+<title>Lavagna Basket</title>
 
 <style>
-#tools {
+
+body {
+  margin: 0;
+  background: #000;
+  overflow: hidden;
+  font-family: Arial;
+}
+
+/* --- BOARD --- */
+#board {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  background-image: url("BOYS_90_BK.png");
+  background-size: cover;
+  background-position: center;
+  touch-action: none;
+}
+
+/* --- ATTACCANTI --- */
+.player {
   position: absolute;
-  bottom: 20px;
-  right: 20px;
-}
-
-#pencilBtn {
-  padding: 10px 18px;
-  font-size: 18px;
-  font-weight: bold;
-  background: #222;
   color: #fff;
-  border: 2px solid #fff;
-  border-radius: 8px;
-  cursor: pointer;
+  font-size: 42px;
+  font-weight: bold;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
 }
 
-#pencilBtn.active {
-  background: #ff8c00;
-  border-color: #000;
+/* --- DIFENSORI (più grandi) --- */
+.defender {
+  position: absolute;
+  color: #000;
+  font-weight: bold;
+  font-size: 42px;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  transform-origin: center center;
 }
 
-
+/* --- PALLA 3D PICCOLA --- */
 .ball {
   position: absolute;
-  width: 32px;              /* più piccola */
+  width: 32px;
   height: 32px;
   border-radius: 50%;
   background: radial-gradient(circle at 30% 30%, #ffb347, #ff8c00 60%, #d46a00);
@@ -55,292 +62,231 @@
   touch-action: none;
 }
 
-/* IMPORTANTISSIMO: elimina qualsiasi pseudo-elemento */
 .ball::before,
 .ball::after {
   content: none !important;
   display: none !important;
 }
 
-
-.defender {
+/* --- CANVAS DISEGNO --- */
+#drawLayer {
   position: absolute;
-  color: #000;          /* nero */
-  font-weight: bold;
-  font-size: 42px;      /* PIÙ GRANDI */
-  cursor: grab;
-  user-select: none;
-  touch-action: none;
-  transform-origin: center center;
+  top: 0;
+  left: 0;
+  pointer-events: none;
 }
 
-  body {
-    margin: 0;
-    background: #222;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-  }
-<div class="ball" style="left:420px; top:250px;"></div>
-<div id="tools">
-  <button id="pencilBtn">✏️ Matita</button>
-</div>
+/* --- STRUMENTI --- */
+#tools {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  gap: 10px;
+}
 
-  #board {
-   
+#tools button {
+  padding: 10px 18px;
+  font-size: 18px;
+  font-weight: bold;
+  background: #222;
+  color: #fff;
+  border: 2px solid #fff;
+  border-radius: 8px;
+  cursor: pointer;
+}
 
-    position: relative;
-    width: 900px;      /* puoi cambiare */
-    height: 500px;     /* puoi cambiare */
-    background-image: url("BOYS_90_BK.png"); /* QUI metti la tua immagine */
-    background-size: cover;
-    background-position: center;
-    border: 4px solid #fff;
-    touch-action: none;
-  }
+#tools button.active {
+  background: #ff8c00;
+  border-color: #000;
+}
 
-  .player {
-    position: absolute;
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    background: #ffffff;
-    color: #000;
-    font-weight: bold;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: grab;
-    box-shadow: 0 0 10px rgba(0,0,0,0.7);
-    user-select: none;
-    touch-action: none;
-  }
-
-  .player:active {
-    cursor: grabbing;
-  }
-
+#eraserBtn.active {
+  background: #ff0000;
+}
 
 </style>
 </head>
 
 <body>
+
 <div id="board">
 
-<!-- DIFENSORI (sempre 5, non numerati) -->
-<div class="defender" style="left:300px; top:200px;">(•</div>
-<div class="defender" style="left:600px; top:200px;">(•</div>
-<div class="defender" style="left:300px; top:300px;">(•</div>
-<div class="defender" style="left:600px; top:300px;">(•</div>
-<div class="defender" style="left:450px; top:350px;">(•</div>
+  <!-- ATTACCANTI -->
+  <div class="player" style="left:100px; top:200px;">●</div>
+  <div class="player" style="left:200px; top:300px;">●</div>
 
+  <!-- DIFENSORI -->
+  <div class="defender" style="left:400px; top:200px;">(•</div>
+  <div class="defender" style="left:500px; top:300px;">(•</div>
 
-  <!-- GIOCATORI -->
-  <div class="player" style="left:430px; top:230px;">1</div>
-  <div class="player" style="left:380px; top:180px;">2</div>
-  <div class="player" style="left:480px; top:180px;">3</div>
-  <div class="player" style="left:360px; top:280px;">4</div>
-  <div class="player" style="left:500px; top:280px;">5</div>
+  <!-- PALLA -->
+  <div class="ball" style="left:420px; top:250px;"></div>
+
+  <!-- CANVAS DISEGNO -->
+  <canvas id="drawLayer"></canvas>
 
 </div>
 
+<!-- STRUMENTI -->
+<div id="tools">
+  <button id="pencilBtn">✏️ Matita</button>
+  <button id="eraserBtn">🧽 Gomma</button>
+</div>
+
 <script>
-  const board = document.getElementById("board");
-  const players = document.querySelectorAll(".player");
-const defenders = document.querySelectorAll(".defender");
-const ball = document.querySelector(".ball");
 
-/* MOVIMENTO PALLA */
-(function(p){
+/* ---------------------------
+   MOVIMENTO GENERICO ELEMENTI
+---------------------------- */
+
+function enableDrag(el) {
   let dragging = false;
-  let offsetX = 0;
-  let offsetY = 0;
+  let offsetX = 0, offsetY = 0;
 
-  function startDrag(x, y) {
+  el.addEventListener("mousedown", e => {
     dragging = true;
-    const rect = p.getBoundingClientRect();
-    offsetX = x - rect.left;
-    offsetY = y - rect.top;
-  }
+    const r = el.getBoundingClientRect();
+    offsetX = e.clientX - r.left;
+    offsetY = e.clientY - r.top;
+  });
 
-  function doDrag(x, y) {
+  document.addEventListener("mousemove", e => {
     if (!dragging) return;
-
     const boardRect = board.getBoundingClientRect();
-    let newX = x - boardRect.left - offsetX;
-    let newY = y - boardRect.top - offsetY;
+    let x = e.clientX - boardRect.left - offsetX;
+    let y = e.clientY - boardRect.top - offsetY;
+    el.style.left = x + "px";
+    el.style.top = y + "px";
+  });
 
-    newX = Math.max(0, Math.min(boardRect.width - p.offsetWidth, newX));
-    newY = Math.max(0, Math.min(boardRect.height - p.offsetHeight, newY));
+  document.addEventListener("mouseup", () => dragging = false);
 
-    p.style.left = newX + "px";
-    p.style.top = newY + "px";
-  }
-
-  function endDrag() {
-    dragging = false;
-  }
-
-  /* mouse */
-  p.addEventListener("mousedown", e => startDrag(e.clientX, e.clientY));
-  document.addEventListener("mousemove", e => doDrag(e.clientX, e.clientY));
-  document.addEventListener("mouseup", endDrag);
-
-  /* touch */
-  p.addEventListener("touchstart", e => {
+  /* Touch */
+  el.addEventListener("touchstart", e => {
+    dragging = true;
     const t = e.touches[0];
-    startDrag(t.clientX, t.clientY);
+    const r = el.getBoundingClientRect();
+    offsetX = t.clientX - r.left;
+    offsetY = t.clientY - r.top;
   }, { passive: false });
 
   document.addEventListener("touchmove", e => {
-    const t = e.touches[0];
-    doDrag(t.clientX, t.clientY);
-  }, { passive: false });
-
-  document.addEventListener("touchend", endDrag);
-})(ball);
-
-
-defenders.forEach(p => {
-  let dragging = false;
-  let offsetX = 0;
-  let offsetY = 0;
-
-  function startDrag(x, y) {
-    dragging = true;
-    const rect = p.getBoundingClientRect();
-    offsetX = x - rect.left;
-    offsetY = y - rect.top;
-  }
-/* ROTAZIONE DIFENSORI */
-defenders.forEach(d => {
-  let currentRotation = 0;
-
-  /* Rotazione con rotella del mouse */
-  d.addEventListener("wheel", e => {
-    e.preventDefault();
-    currentRotation += e.deltaY > 0 ? 10 : -10;
-    d.style.transform = `rotate(${currentRotation}deg)`;
-  });
-
-  /* Rotazione con due dita (pinch rotate) */
-  let lastAngle = null;
-
-  d.addEventListener("touchmove", e => {
-    if (e.touches.length === 2) {
-      e.preventDefault();
-
-      const t1 = e.touches[0];
-      const t2 = e.touches[1];
-
-      const angle = Math.atan2(
-        t2.clientY - t1.clientY,
-        t2.clientX - t1.clientX
-      ) * 180 / Math.PI;
-
-      if (lastAngle !== null) {
-        const delta = angle - lastAngle;
-        currentRotation += delta;
-        d.style.transform = `rotate(${currentRotation}deg)`;
-      }
-
-      lastAngle = angle;
-    }
-  }, { passive: false });
-
-  d.addEventListener("touchend", () => {
-    lastAngle = null;
-  });
-});
-
-
-  function doDrag(x, y) {
     if (!dragging) return;
-
+    const t = e.touches[0];
     const boardRect = board.getBoundingClientRect();
-    let newX = x - boardRect.left - offsetX;
-    let newY = y - boardRect.top - offsetY;
-
-    newX = Math.max(0, Math.min(boardRect.width - p.offsetWidth, newX));
-    newY = Math.max(0, Math.min(boardRect.height - p.offsetHeight, newY));
-
-    p.style.left = newX + "px";
-    p.style.top = newY + "px";
-  }
-
-  function endDrag() {
-    dragging = false;
-  }
-
-  /* mouse */
-  p.addEventListener("mousedown", e => startDrag(e.clientX, e.clientY));
-  document.addEventListener("mousemove", e => doDrag(e.clientX, e.clientY));
-  document.addEventListener("mouseup", endDrag);
-
-  /* touch */
-  p.addEventListener("touchstart", e => {
-    const t = e.touches[0];
-    startDrag(t.clientX, t.clientY);
+    let x = t.clientX - boardRect.left - offsetX;
+    let y = t.clientY - boardRect.top - offsetY;
+    el.style.left = x + "px";
+    el.style.top = y + "px";
   }, { passive: false });
 
-  document.addEventListener("touchmove", e => {
-    const t = e.touches[0];
-    doDrag(t.clientX, t.clientY);
-  }, { passive: false });
+  document.addEventListener("touchend", () => dragging = false);
+}
 
-  document.addEventListener("touchend", endDrag);
+/* Attiva drag su tutti */
+document.querySelectorAll(".player").forEach(enableDrag);
+document.querySelectorAll(".defender").forEach(enableDrag);
+enableDrag(document.querySelector(".ball"));
+
+/* ---------------------------
+   ROTAZIONE DIFENSORI
+---------------------------- */
+
+document.querySelectorAll(".defender").forEach(def => {
+  def.addEventListener("dblclick", () => {
+    let angle = parseInt(def.getAttribute("data-angle") || "0");
+    angle += 45;
+    def.style.transform = `rotate(${angle}deg)`;
+    def.setAttribute("data-angle", angle);
+  });
 });
 
+/* ---------------------------
+   MATITA + GOMMA
+---------------------------- */
 
-  players.forEach(p => {
-    let dragging = false;
-    let offsetX = 0;
-    let offsetY = 0;
+const board = document.getElementById("board");
+const drawLayer = document.getElementById("drawLayer");
+const ctx = drawLayer.getContext("2d");
 
-    function startDrag(x, y) {
-      dragging = true;
-      const rect = p.getBoundingClientRect();
-      offsetX = x - rect.left;
-      offsetY = y - rect.top;
-    }
+function resizeCanvas() {
+  drawLayer.width = board.offsetWidth;
+  drawLayer.height = board.offsetHeight;
+}
+resizeCanvas();
 
-    function doDrag(x, y) {
-      if (!dragging) return;
+let drawing = false;
+let pencilActive = false;
+let eraserActive = false;
 
-      const boardRect = board.getBoundingClientRect();
-      let newX = x - boardRect.left - offsetX;
-      let newY = y - boardRect.top - offsetY;
+const pencilBtn = document.getElementById("pencilBtn");
+const eraserBtn = document.getElementById("eraserBtn");
 
-      newX = Math.max(0, Math.min(boardRect.width - p.offsetWidth, newX));
-      newY = Math.max(0, Math.min(boardRect.height - p.offsetHeight, newY));
+/* MATITA */
+pencilBtn.addEventListener("click", () => {
+  pencilActive = !pencilActive;
+  eraserActive = false;
 
-      p.style.left = newX + "px";
-      p.style.top = newY + "px";
-    }
+  pencilBtn.classList.toggle("active", pencilActive);
+  eraserBtn.classList.remove("active");
 
-    function endDrag() {
-      dragging = false;
-    }
+  drawLayer.style.pointerEvents = pencilActive ? "auto" : "none";
 
-    /* mouse */
-    p.addEventListener("mousedown", e => startDrag(e.clientX, e.clientY));
-    document.addEventListener("mousemove", e => doDrag(e.clientX, e.clientY));
-    document.addEventListener("mouseup", endDrag);
+  ctx.strokeStyle = "#ff8c00";
+  ctx.lineWidth = 4;
+});
 
-    /* touch */
-    p.addEventListener("touchstart", e => {
-      const t = e.touches[0];
-      startDrag(t.clientX, t.clientY);
-    }, { passive: false });
+/* GOMMA */
+eraserBtn.addEventListener("click", () => {
+  eraserActive = !eraserActive;
+  pencilActive = false;
 
-    document.addEventListener("touchmove", e => {
-      const t = e.touches[0];
-      doDrag(t.clientX, t.clientY);
-    }, { passive: false });
+  eraserBtn.classList.toggle("active", eraserActive);
+  pencilBtn.classList.remove("active");
 
-    document.addEventListener("touchend", endDrag);
-  });
+  drawLayer.style.pointerEvents = eraserActive ? "auto" : "none";
+
+  ctx.strokeStyle = "#ffffff";
+  ctx.lineWidth = 20;
+});
+
+/* DISEGNO */
+drawLayer.addEventListener("mousedown", e => {
+  if (!pencilActive && !eraserActive) return;
+  drawing = true;
+  ctx.beginPath();
+  ctx.moveTo(e.offsetX, e.offsetY);
+});
+
+drawLayer.addEventListener("mousemove", e => {
+  if (!drawing) return;
+  ctx.lineTo(e.offsetX, e.offsetY);
+  ctx.stroke();
+});
+
+drawLayer.addEventListener("mouseup", () => drawing = false);
+
+/* Touch */
+drawLayer.addEventListener("touchstart", e => {
+  if (!pencilActive && !eraserActive) return;
+  drawing = true;
+  const t = e.touches[0];
+  const r = drawLayer.getBoundingClientRect();
+  ctx.beginPath();
+  ctx.moveTo(t.clientX - r.left, t.clientY - r.top);
+}, { passive: false });
+
+drawLayer.addEventListener("touchmove", e => {
+  if (!drawing) return;
+  const t = e.touches[0];
+  const r = drawLayer.getBoundingClientRect();
+  ctx.lineTo(t.clientX - r.left, t.clientY - r.top);
+  ctx.stroke();
+}, { passive: false });
+
+drawLayer.addEventListener("touchend", () => drawing = false);
+
 </script>
 
 </body>
