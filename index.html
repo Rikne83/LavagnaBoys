@@ -1,18 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
- <link rel="manifest" href="manifest.json">
-
-<script>
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("service-worker.js");
-}
-</script>
-
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
-<link rel="apple-touch-icon" href="icon.png">
-  
 <meta charset="UTF-8">
 <title>Lavagna Basket</title>
 
@@ -34,16 +22,17 @@ body {
   background-size: cover;
   background-position: center;
   touch-action: none;
+  z-index: 1;
 }
 
-/* --- ATTACCANTI --- */
+/* --- ATTACCANTI: cerchi bianchi con numero nero --- */
 .player {
   position: absolute;
   width: 55px;
   height: 55px;
   border-radius: 50%;
-  background: #ffffff;        /* cerchio bianco */
-  color: #000000;             /* numero nero */
+  background: #ffffff;
+  color: #000000;
   font-size: 32px;
   font-weight: bold;
   display: flex;
@@ -52,80 +41,22 @@ body {
   cursor: grab;
   user-select: none;
   touch-action: none;
-  box-shadow: 0 0 10px rgba(0,0,0,0.6); /* visibilità sul campo */
+  box-shadow: 0 0 10px rgba(0,0,0,0.6);
 }
 
-
-/* --- DIFENSORI (più grandi) --- */
- .defender {
+/* --- DIFENSORI: +30% --- */
+.defender {
   position: absolute;
   color: #000;
   font-weight: bold;
-  font-size: 55px;     /* +30% rispetto a 42px */
+  font-size: 55px; /* +30% rispetto a 42px */
   cursor: grab;
   user-select: none;
   touch-action: none;
   transform-origin: center center;
 }
 
-  .document.querySelectorAll(".defender").forEach(def => {
-  let rotating = false;
-  let startAngle = 0;
-  let initialRotation = 0;
-  function getAngle(x, y, rect) {
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    return Math.atan2(y - cy, x - cx) * 180 / Math.PI;
-  }
-
-  /* TOUCH START */
-  def.addEventListener("touchstart", e => {
-    rotating = true;
-    const t = e.touches[0];
-    const rect = def.getBoundingClientRect();
-    startAngle = getAngle(t.clientX, t.clientY, rect);
-    initialRotation = parseFloat(def.getAttribute("data-angle") || "0");
-  }, { passive: false });
-
-  /* TOUCH MOVE */
-  def.addEventListener("touchmove", e => {
-    if (!rotating) return;
-    const t = e.touches[0];
-    const rect = def.getBoundingClientRect();
-    const currentAngle = getAngle(t.clientX, t.clientY, rect);
-    const delta = currentAngle - startAngle;
-    const newAngle = initialRotation + delta;
-    def.style.transform = `rotate(${newAngle}deg)`;
-    def.setAttribute("data-angle", newAngle);
-  }, { passive: false });
-
-  /* TOUCH END */
-  def.addEventListener("touchend", () => rotating = false);
-
-  /* MOUSE VERSION */
-  def.addEventListener("mousedown", e => {
-    rotating = true;
-    const rect = def.getBoundingClientRect();
-    startAngle = getAngle(e.clientX, e.clientY, rect);
-    initialRotation = parseFloat(def.getAttribute("data-angle") || "0");
-  });
-
-  document.addEventListener("mousemove", e => {
-    if (!rotating) return;
-    const rect = def.getBoundingClientRect();
-    const currentAngle = getAngle(e.clientX, e.clientY, rect);
-    const delta = currentAngle - startAngle;
-    const newAngle = initialRotation + delta;
-    def.style.transform = `rotate(${newAngle}deg)`;
-    def.setAttribute("data-angle", newAngle);
-  });
-
-  document.addEventListener("mouseup", () => rotating = false);
-});
-
-
-
-/* --- PALLA 3D PICCOLA --- */
+/* --- PALLA 3D --- */
 .ball {
   position: absolute;
   width: 32px;
@@ -138,12 +69,7 @@ body {
   cursor: grab;
   user-select: none;
   touch-action: none;
-}
-
-.ball::before,
-.ball::after {
-  content: none !important;
-  display: none !important;
+  z-index: 10; /* palla sopra tutto */
 }
 
 /* --- CANVAS DISEGNO --- */
@@ -152,6 +78,7 @@ body {
   top: 0;
   left: 0;
   pointer-events: none;
+  z-index: 5; /* sotto la palla */
 }
 
 /* --- STRUMENTI --- */
@@ -190,26 +117,22 @@ body {
 
 <div id="board">
 
-
   <!-- ATTACCANTI (1–5) -->
-<div class="player" style="left:100px; top:200px;">1</div>
-<div class="player" style="left:200px; top:300px;">2</div>
-<div class="player" style="left:300px; top:250px;">3</div>
-<div class="player" style="left:150px; top:400px;">4</div>
-<div class="player" style="left:250px; top:450px;">5</div>
+  <div class="player" style="left:100px; top:200px;">1</div>
+  <div class="player" style="left:200px; top:300px;">2</div>
+  <div class="player" style="left:300px; top:250px;">3</div>
+  <div class="player" style="left:150px; top:400px;">4</div>
+  <div class="player" style="left:250px; top:450px;">5</div>
 
-
-  
   <!-- DIFENSORI (•) -->
-<div class="defender" style="left:500px; top:200px;">(•</div>
-<div class="defender" style="left:600px; top:300px;">(•</div>
-<div class="defender" style="left:550px; top:400px;">(•</div>
-<div class="defender" style="left:650px; top:250px;">(•</div>
-<div class="defender" style="left:700px; top:350px;">(•</div>
+  <div class="defender" style="left:500px; top:200px;">(•</div>
+  <div class="defender" style="left:600px; top:300px;">(•</div>
+  <div class="defender" style="left:550px; top:400px;">(•</div>
+  <div class="defender" style="left:650px; top:250px;">(•</div>
+  <div class="defender" style="left:700px; top:350px;">(•</div>
 
   <!-- PALLA -->
-  <div class="ball" style="left:300px; top:300px;"></div>
-
+  <div class="ball" style="left:420px; top:250px;"></div>
 
   <!-- CANVAS DISEGNO -->
   <canvas id="drawLayer"></canvas>
@@ -278,20 +201,67 @@ document.querySelectorAll(".defender").forEach(enableDrag);
 enableDrag(document.querySelector(".ball"));
 
 /* ---------------------------
-   ROTAZIONE DIFENSORI
+   ROTAZIONE DIFENSORI SEMPLIFICATA
 ---------------------------- */
 
 document.querySelectorAll(".defender").forEach(def => {
-  def.addEventListener("dblclick", () => {
-    let angle = parseInt(def.getAttribute("data-angle") || "0");
-    angle += 45;
-    def.style.transform = `rotate(${angle}deg)`;
-    def.setAttribute("data-angle", angle);
+  let rotating = false;
+  let startAngle = 0;
+  let initialRotation = 0;
+
+  function getAngle(x, y, rect) {
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    return Math.atan2(y - cy, x - cx) * 180 / Math.PI;
+  }
+
+  /* TOUCH START */
+  def.addEventListener("touchstart", e => {
+    rotating = true;
+    const t = e.touches[0];
+    const rect = def.getBoundingClientRect();
+    startAngle = getAngle(t.clientX, t.clientY, rect);
+    initialRotation = parseFloat(def.getAttribute("data-angle") || "0");
+  }, { passive: false });
+
+  /* TOUCH MOVE */
+  def.addEventListener("touchmove", e => {
+    if (!rotating) return;
+    const t = e.touches[0];
+    const rect = def.getBoundingClientRect();
+    const currentAngle = getAngle(t.clientX, t.clientY, rect);
+    const delta = currentAngle - startAngle;
+    const newAngle = initialRotation + delta;
+    def.style.transform = `rotate(${newAngle}deg)`;
+    def.setAttribute("data-angle", newAngle);
+  }, { passive: false });
+
+  /* TOUCH END */
+  def.addEventListener("touchend", () => rotating = false);
+
+  /* MOUSE VERSION */
+  def.addEventListener("mousedown", e => {
+    rotating = true;
+    const rect = def.getBoundingClientRect();
+    startAngle = getAngle(e.clientX, e.clientY, rect);
+    initialRotation = parseFloat(def.getAttribute("data-angle") || "0");
   });
+
+  document.addEventListener("mousemove", e => {
+    if (!rotating) return;
+    const rect = def.getBoundingClientRect();
+    const currentAngle = getAngle(e.clientX, e.clientY, rect);
+    const delta = currentAngle - startAngle;
+    const newAngle = initialRotation + delta;
+    def.style.transform = `rotate(${newAngle}deg)`;
+    def.setAttribute("data-angle", newAngle);
+  });
+
+  document.addEventListener("mouseup", () => rotating = false);
 });
 
 /* ---------------------------
-   MATITA + GOMMA
+   MATITA + GOMMA (corrette)
 ---------------------------- */
 
 const board = document.getElementById("board");
@@ -321,7 +291,7 @@ pencilBtn.addEventListener("click", () => {
 
   drawLayer.style.pointerEvents = pencilActive ? "auto" : "none";
 
-  ctx.globalCompositeOperation = "source-over";  // MATITA NORMALE
+  ctx.globalCompositeOperation = "source-over";
   ctx.strokeStyle = "#ff8c00";
   ctx.lineWidth = 4;
 });
@@ -336,8 +306,8 @@ eraserBtn.addEventListener("click", () => {
 
   drawLayer.style.pointerEvents = eraserActive ? "auto" : "none";
 
-  ctx.globalCompositeOperation = "destination-out";  // CANCELLA
-  ctx.lineWidth = 30;  // spessore gomma
+  ctx.globalCompositeOperation = "destination-out";
+  ctx.lineWidth = 30;
 });
 
 /* DISEGNO */
