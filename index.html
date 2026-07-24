@@ -57,16 +57,63 @@ body {
 
 
 /* --- DIFENSORI (più grandi) --- */
-.defender {
-  position: absolute;
-  color: #000;
-  font-weight: bold;
-  font-size: 42px;
-  cursor: grab;
-  user-select: none;
-  touch-action: none;
-  transform-origin: center center;
-}
+.defedocument.querySelectorAll(".defender").forEach(def => {
+  let rotating = false;
+  let startAngle = 0;
+  let initialRotation = 0;
+
+  function getAngle(x, y, rect) {
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    return Math.atan2(y - cy, x - cx) * 180 / Math.PI;
+  }
+
+  /* TOUCH START */
+  def.addEventListener("touchstart", e => {
+    rotating = true;
+    const t = e.touches[0];
+    const rect = def.getBoundingClientRect();
+    startAngle = getAngle(t.clientX, t.clientY, rect);
+    initialRotation = parseFloat(def.getAttribute("data-angle") || "0");
+  }, { passive: false });
+
+  /* TOUCH MOVE */
+  def.addEventListener("touchmove", e => {
+    if (!rotating) return;
+    const t = e.touches[0];
+    const rect = def.getBoundingClientRect();
+    const currentAngle = getAngle(t.clientX, t.clientY, rect);
+    const delta = currentAngle - startAngle;
+    const newAngle = initialRotation + delta;
+    def.style.transform = `rotate(${newAngle}deg)`;
+    def.setAttribute("data-angle", newAngle);
+  }, { passive: false });
+
+  /* TOUCH END */
+  def.addEventListener("touchend", () => rotating = false);
+
+  /* MOUSE VERSION */
+  def.addEventListener("mousedown", e => {
+    rotating = true;
+    const rect = def.getBoundingClientRect();
+    startAngle = getAngle(e.clientX, e.clientY, rect);
+    initialRotation = parseFloat(def.getAttribute("data-angle") || "0");
+  });
+
+  document.addEventListener("mousemove", e => {
+    if (!rotating) return;
+    const rect = def.getBoundingClientRect();
+    const currentAngle = getAngle(e.clientX, e.clientY, rect);
+    const delta = currentAngle - startAngle;
+    const newAngle = initialRotation + delta;
+    def.style.transform = `rotate(${newAngle}deg)`;
+    def.setAttribute("data-angle", newAngle);
+  });
+
+  document.addEventListener("mouseup", () => rotating = false);
+});
+
+
 
 /* --- PALLA 3D PICCOLA --- */
 .ball {
